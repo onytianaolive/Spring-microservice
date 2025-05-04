@@ -1,0 +1,132 @@
+services:
+  eureka:
+    build: ./eureka
+    container_name: eureka
+    ports:
+      - 8761:8761
+    networks:
+      - microservice-net
+
+  employee:
+    build: ./employee
+    container_name: employee
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=jdbc:postgresql://dbemployee:5432/bd_employee
+      - EUREKA_URL=http://eureka:8761/eureka
+    ports:
+      - '8081:8081'
+    depends_on:
+      - eureka
+    networks:
+      - microservice-net
+
+  beneficiary:
+    build: ./beneficiary
+    container_name: beneficiary
+    restart : unless-stopped
+    environment:
+      - DATABASE_URL=jdbc:postgresql://dbbeneficiary:5432/bd_beneficiary
+      - EUREKA_URL=http://eureka:8761/eureka
+    ports:
+      - '8080:8080'
+    depends_on:
+      - eureka
+    networks:
+      - microservice-net
+
+  company:
+    build: ./company
+    container_name: company
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=jdbc:postgresql://dbcompany:5432/bd_company
+      - EUREKA_URL=http://eureka:8761/eureka
+    ports:
+      - '8082:8082'
+    depends_on:
+      - eureka
+    networks:
+      - microservice-net
+
+  insurrance:
+    build: ./insurrance
+    container_name: insurrance
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=jdbc:postgresql://dbinsurrance:5432/bd_insurrance
+      - EUREKA_URL=http://eureka:8761/eureka
+    ports:
+      - '8083:8083'
+    depends_on:
+      - eureka
+      - employee
+      - beneficiary
+      - company
+    networks:
+      - microservice-net
+
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    restart: unless-stopped
+    environment:
+      - EUREKA_URL=http://eureka:8761/eureka
+    ports:
+      - '9090:9090'
+    depends_on:
+      - eureka
+    networks:
+      - microservice-net
+
+  postgres_employee:
+    container_name: dbemployee
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bd_employee
+    ports:
+      - 5434:5432
+    networks:
+      - microservice-net
+
+  postgres_beneficiary:
+    container_name: dbbeneficiary
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bd_beneficiary
+    ports:
+      - 5435:5432
+    networks:
+      - microservice-net
+
+  postgres_company:
+    container_name: dbcompany
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bd_company
+    ports:
+      - 5436:5432
+    networks:
+      - microservice-net
+
+  postgres_insurrance:
+    container_name: dbinsurrance
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=bd_insurrance
+    ports:
+      - 5437:5432
+    networks:
+      - microservice-net
+
+networks:
+  microservice-net:
+    driver: bridge
